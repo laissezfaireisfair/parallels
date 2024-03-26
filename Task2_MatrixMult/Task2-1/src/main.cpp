@@ -20,25 +20,32 @@ Matrix GetMockRightMatrix() {
 
   for (int i = 0; i < 5; ++i)
     for (int j = 0; j < 5; ++j)
-      matrix(i, j) = i == j ? 1 : 0;
+      matrix(i, j) = i == j ? i : 0;
 
   return matrix;
+}
+
+void PrintMatrix(Matrix const& matrix) {
+  cout << matrix.Rows() << "x" << matrix.Columns() << endl;
+
+  for (int i = 0; i < matrix.Rows(); ++i) {
+    for (int j = 0; j < matrix.Columns(); ++j)
+      cout << matrix(i, j) << " ";
+    cout << endl;
+  }
 }
 
 int main(int argc, char* argv[]) {
   // TODO: Read matrices from specified files
 
   auto matrix1 = GetMockLeftMatrix();
+  PrintMatrix(matrix1);
   auto matrix2 = GetMockRightMatrix();
+  PrintMatrix(matrix2);
 
   auto multResult = matrix1 * matrix2;
 
-  cout << multResult.Rows() << "x" << multResult.Columns() << endl;
-  for (int i = 0; i < multResult.Rows(); ++i) {
-    for (int j = 0; j < multResult.Columns(); ++j)
-      cout << multResult(i, j);
-    cout << endl;
-  }
+  PrintMatrix(multResult);
 
   // TODO: Write result to specified file
 

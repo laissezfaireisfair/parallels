@@ -1,10 +1,12 @@
 #include <vector>
+#include <stdexcept>
 
 #include "matrix.h"
 
 namespace parallels {
 using std::make_unique;
 using std::vector;
+using std::invalid_argument;
 
 class Matrix::Impl {
  public:
@@ -17,7 +19,21 @@ class Matrix::Impl {
   double& at(size_t row, size_t column) { return body.at(row).at(column); }
 
   unique_ptr<Impl> Mult(Matrix const& other) {
-    // TODO: Implement
+    if (Columns() != other.Rows())
+      throw invalid_argument("Cannot multiply matrices with such shapes");
+
+    auto result = make_unique<Impl>(Rows(), other.Columns());
+
+    for (int i = 0; i < Rows(); ++i) {
+      for (int j = 0; j < other.Columns(); ++j) {
+        double sum = 0;
+        for (int k = 0; k < Columns(); ++k)
+          sum += at(i, k) * other(k, j);
+        result->at(i, j) = sum;
+      }
+    }
+
+    return result;
   }
 
   ~Impl() = default;
