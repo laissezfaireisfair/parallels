@@ -10,13 +10,15 @@ using std::invalid_argument;
 
 class Matrix::Impl {
  public:
-  Impl(size_t rows, size_t columns) : body(rows, vector(columns, 0.)) {}
+  Impl(size_t rows, size_t columns) : body(rows * columns, 0.),
+                                      _rows(rows),
+                                      _columns(columns) {}
 
-  size_t Rows() const { return body.size(); }
+  size_t Rows() const { return _rows; }
 
-  size_t Columns() const { return Rows() > 0 ? body[0].size() : 0; }
+  size_t Columns() const { return _columns; }
 
-  double& at(size_t row, size_t column) { return body.at(row).at(column); }
+  double& at(size_t row, size_t column) { return body.at(row * _columns + column); }
 
   unique_ptr<Impl> Mult(Matrix const& other) {
     if (Columns() != other.Rows())
@@ -39,7 +41,9 @@ class Matrix::Impl {
   ~Impl() = default;
 
  private:
-  vector<vector<double>> body;
+  vector<double> body;
+  size_t _rows;
+  size_t _columns;
 };
 
 Matrix::Matrix(size_t rows, size_t columns) : _pimpl(make_unique<Impl>(rows, columns)) {}
