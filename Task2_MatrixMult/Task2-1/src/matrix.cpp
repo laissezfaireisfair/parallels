@@ -1,5 +1,6 @@
 #include <vector>
 #include <stdexcept>
+#include <thread>
 
 #include "matrix.h"
 
@@ -7,6 +8,7 @@ namespace parallels {
 using std::make_unique;
 using std::vector;
 using std::invalid_argument;
+using std::thread;
 
 class Matrix::Impl {
  public:
@@ -26,14 +28,33 @@ class Matrix::Impl {
 
     auto result = make_unique<Impl>(Rows(), other.Columns());
 
-    for (int i = 0; i < Rows(); ++i) {
-      for (int j = 0; j < other.Columns(); ++j) {
-        double sum = 0;
-        for (int k = 0; k < Columns(); ++k)
-          sum += at(i, k) * other(k, j);
-        result->at(i, j) = sum;
+    auto task1 = [this, &other, &result]() {
+      for (size_t i = 0; i < Rows(); ++i) {
+        for (size_t j = 0; j < other.Columns() / 2; ++j) {
+          double sum = 0;
+          for (size_t k = 0; k < Columns(); ++k)
+            sum += at(i, k) * other(k, j);
+          result->at(i, j) = sum;
+        }
       }
-    }
+    };
+
+    auto task2 = [this, &other, &result]() {
+      for (size_t i = 0; i < Rows(); ++i) {
+        for (size_t j = Columns() / 2; j < other.Columns(); ++j) {
+          double sum = 0;
+          for (size_t k = 0; k < Columns(); ++k)
+            sum += at(i, k) * other(k, j);
+          result->at(i, j) = sum;
+        }
+      }
+    };
+
+    thread thread1(task1);
+    thread thread2(task2);
+
+    thread1.join();
+    thread2.join();
 
     return result;
   }
