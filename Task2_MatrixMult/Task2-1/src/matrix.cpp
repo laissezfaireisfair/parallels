@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <thread>
 
+#include "appSettings.h"
 #include "matrix.h"
 
 namespace parallels {
@@ -29,9 +30,9 @@ class Matrix::Impl {
 
     auto result = make_unique<Impl>(Rows(), other.Columns());
 
-    size_t const kNumThreads = 24;
-    size_t const columnsPerTask = other.Columns() / kNumThreads
-        + (other.Columns() % kNumThreads ? 1 : 0);
+
+    size_t const columnsPerTask = other.Columns() / AppSettings::max_threads_count_
+        + (other.Columns() % AppSettings::max_threads_count_ ? 1 : 0);
     auto taskByBorders
         = [this, &other, &result](size_t fromColumn, size_t toColumn) {
           for (size_t i = 0; i < Rows(); ++i) {

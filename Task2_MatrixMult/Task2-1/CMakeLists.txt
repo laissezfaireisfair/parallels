@@ -7,4 +7,5 @@ include_directories(include)
 
 add_executable(Task2_1 src/main.cpp
         include/matrix.h
-        src/matrix.cpp)
+        src/matrix.cpp
+        include/appSettings.h)
