@@ -30,7 +30,7 @@ Matrix GetMockRightVector(size_t equations_count) {
 
 Matrix SolveSystem(Matrix const& matrix, Matrix const& right_vector) {
   const double kAccuracy = 1e-10;
-  const double tau = 0.001;
+  const double tau = 2e-4;
 
   auto solution = Matrix(right_vector.Rows(), 1);
 
@@ -46,7 +46,7 @@ Matrix SolveSystem(Matrix const& matrix, Matrix const& right_vector) {
 }
 
 int main(int argc, char* argv[]) {
-  const size_t kEquationsCount = 1000;
+  const size_t kEquationsCount = 5'000;
 
   try {
     if (argc != 2)
