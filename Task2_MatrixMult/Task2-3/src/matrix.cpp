@@ -1,6 +1,5 @@
 #include <vector>
 #include <stdexcept>
-#include <thread>
 #include <cmath>
 
 #include "matrix.h"
@@ -9,7 +8,6 @@ namespace parallels {
 using std::make_unique;
 using std::vector;
 using std::invalid_argument;
-using std::thread;
 using std::min;
 using std::sqrt;
 
@@ -34,26 +32,15 @@ class Matrix::Impl {
 
     auto result = make_unique<Impl>(Rows(), other.Columns());
 
-    size_t const columnsPerTask = other.Columns() / thread_limit_
-        + (other.Columns() % thread_limit_ ? 1 : 0);
-    auto task_by_borders
-        = [this, &other, &result](size_t fromColumn, size_t toColumn) {
-          for (size_t i = 0; i < Rows(); ++i) {
-            for (size_t j = fromColumn; j < toColumn; ++j) {
-              double sum = 0;
-              for (size_t k = 0; k < Columns(); ++k)
-                sum += at(i, k) * other(k, j);
-              result->at(i, j) = sum;
-            }
-          }
-        };
-
-    auto threads = vector<thread>();
-    for (size_t i = 0; i < other.Columns(); i += columnsPerTask)
-      threads.emplace_back(task_by_borders, i, min(other.Columns(), i + columnsPerTask));
-
-    for (auto& thread : threads)
-      thread.join();
+#pragma omp parallel for num_threads(thread_limit_)
+    for (size_t i = 0; i < Rows(); ++i) {
+      for (size_t j = 0; j < other.Columns(); ++j) {
+        double sum = 0;
+        for (size_t k = 0; k < Columns(); ++k)
+          sum += at(i, k) * other(k, j);
+        result->at(i, j) = sum;
+      }
+    }
 
     return result;
   }
@@ -72,6 +59,7 @@ class Matrix::Impl {
 
   double Norm() const {
     double sum = 0.;
+#pragma omp parallel for num_threads(thread_limit_) reduction(+:sum)
     for (auto cell : body)
       sum += cell;
     return sqrt(sum);
@@ -80,6 +68,7 @@ class Matrix::Impl {
   unique_ptr<Impl> Mult(double coef) const {
     auto result = make_unique<Impl>(Rows(), Columns());
 
+#pragma omp parallel for num_threads(thread_limit_)
     for (size_t i = 0; i < body.size(); ++i)
       result->body[i] = body[i] * coef;
 
