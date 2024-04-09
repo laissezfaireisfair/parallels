@@ -1,53 +1,53 @@
 #include <iostream>
+#include <fstream>
 
 #include "matrix.h"
 
 using parallels::Matrix;
-using std::cout;
 using std::endl;
+using std::ofstream;
+using std::ostream;
+
+const size_t kMockVectorSize = 20'000;
 
 Matrix GetMockLeftMatrix() {
-  auto matrix = Matrix(1, 5);
+  auto matrix = Matrix(1, kMockVectorSize);
 
-  for (int i = 0; i < 5; ++i)
-    matrix(0, i) = i;
+  for (size_t i = 0; i < kMockVectorSize; ++i)
+    matrix(0, i) = static_cast<double>(i);
 
   return matrix;
 }
 
 Matrix GetMockRightMatrix() {
-  auto matrix = Matrix(5, 5);
+  auto matrix = Matrix(kMockVectorSize, kMockVectorSize);
 
-  for (int i = 0; i < 5; ++i)
-    for (int j = 0; j < 5; ++j)
-      matrix(i, j) = i == j ? i : 0;
+  for (size_t i = 0; i < kMockVectorSize; ++i)
+    matrix(i, i) = static_cast<double>(i);
 
   return matrix;
 }
 
-void PrintMatrix(Matrix const& matrix) {
-  cout << matrix.Rows() << "x" << matrix.Columns() << endl;
+void PrintMatrix(Matrix const& matrix, ostream& stream) {
+  stream << matrix.Rows() << "x" << matrix.Columns() << endl;
 
   for (int i = 0; i < matrix.Rows(); ++i) {
     for (int j = 0; j < matrix.Columns(); ++j)
-      cout << matrix(i, j) << " ";
-    cout << endl;
+      stream << matrix(i, j) << " ";
+    stream << endl;
   }
 }
 
-int main(int argc, char* argv[]) {
-  // TODO: Read matrices from specified files
-
+int main() {
   auto matrix1 = GetMockLeftMatrix();
-  PrintMatrix(matrix1);
   auto matrix2 = GetMockRightMatrix();
-  PrintMatrix(matrix2);
+
+  auto stream = ofstream("output.txt");
 
   auto multResult = matrix1 * matrix2;
+  PrintMatrix(multResult, stream);
 
-  PrintMatrix(multResult);
-
-  // TODO: Write result to specified file
+  stream.close();
 
   return 0;
 }
