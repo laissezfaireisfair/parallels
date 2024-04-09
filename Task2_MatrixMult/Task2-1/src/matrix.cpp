@@ -9,6 +9,7 @@ using std::make_unique;
 using std::vector;
 using std::invalid_argument;
 using std::thread;
+using std::min;
 
 class Matrix::Impl {
  public:
@@ -28,33 +29,27 @@ class Matrix::Impl {
 
     auto result = make_unique<Impl>(Rows(), other.Columns());
 
-    auto task1 = [this, &other, &result]() {
-      for (size_t i = 0; i < Rows(); ++i) {
-        for (size_t j = 0; j < other.Columns() / 2; ++j) {
-          double sum = 0;
-          for (size_t k = 0; k < Columns(); ++k)
-            sum += at(i, k) * other(k, j);
-          result->at(i, j) = sum;
-        }
-      }
-    };
+    size_t const kNumThreads = 3;
+    size_t const columnsPerTask = other.Columns() / kNumThreads
+        + (other.Columns() % kNumThreads? 1 : 0);
+    auto taskByBorders
+        = [this, &other, &result](size_t fromColumn, size_t toColumn) {
+          for (size_t i = 0; i < Rows(); ++i) {
+            for (size_t j = fromColumn; j < toColumn; ++j) {
+              double sum = 0;
+              for (size_t k = 0; k < Columns(); ++k)
+                sum += at(i, k) * other(k, j);
+              result->at(i, j) = sum;
+            }
+          }
+        };
 
-    auto task2 = [this, &other, &result]() {
-      for (size_t i = 0; i < Rows(); ++i) {
-        for (size_t j = Columns() / 2; j < other.Columns(); ++j) {
-          double sum = 0;
-          for (size_t k = 0; k < Columns(); ++k)
-            sum += at(i, k) * other(k, j);
-          result->at(i, j) = sum;
-        }
-      }
-    };
+    auto threads = vector<thread>();
+    for (size_t i = 0; i < other.Columns(); i += columnsPerTask)
+      threads.emplace_back(taskByBorders, i, min(other.Columns(), i + columnsPerTask));
 
-    thread thread1(task1);
-    thread thread2(task2);
-
-    thread1.join();
-    thread2.join();
+    for (auto& thread : threads)
+      thread.join();
 
     return result;
   }
