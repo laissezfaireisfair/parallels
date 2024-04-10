@@ -17,10 +17,11 @@ double integrate(double (* func)(double), double from, double to) {
   const double step = (to - from) / kResolution;
   double sum = 0.;
 
-#pragma omp parallel for  num_threads(maxThreadsCount) reduction(+:sum)
+#pragma omp parallel for num_threads(maxThreadsCount)
   for (size_t i = 0; i < kResolution; ++i) {
     const double left = static_cast<double>(i) * step;
     const double right = left + step;
+#pragma omp atomic
     sum += (right - left) / 6. * (func(left) + 4 * func((left + right) / 2.) + func(right));
   }
 
