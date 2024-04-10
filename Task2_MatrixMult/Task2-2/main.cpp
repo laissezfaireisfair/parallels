@@ -21,8 +21,9 @@ double integrate(double (* func)(double), double from, double to) {
   for (size_t i = 0; i < kResolution; ++i) {
     const double left = static_cast<double>(i) * step;
     const double right = left + step;
+    double const segment = (right - left) / 6. * (func(left) + 4 * func((left + right) / 2.) + func(right));
 #pragma omp atomic
-    sum += (right - left) / 6. * (func(left) + 4 * func((left + right) / 2.) + func(right));
+    sum += segment;
   }
 
   return sum;
