@@ -72,7 +72,7 @@ class Server {
 
  private:
   optional<jthread> computingThread;
-  queue<packaged_task<int()>> tasks_;
+  queue<packaged_task<T()>> tasks_;
   unordered_map<size_t, future<T>> future_by_id;
   size_t id_counter_ = 0;
   mutex tasks_mutex_;
