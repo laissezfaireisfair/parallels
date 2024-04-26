@@ -14,6 +14,8 @@ using std::sqrt;
 using std::pow;
 using std::ofstream;
 using std::endl;
+using std::pair;
+using std::to_string;
 using std::uniform_real_distribution;
 using std::default_random_engine;
 using std::numbers::pi;
@@ -27,32 +29,44 @@ double GetRandArgument(double from, double to) {
   return random_argument;
 }
 
-packaged_task<double()> GetSinTask() {
-  return packaged_task<double()>([]() { return sin(GetRandArgument(-pi, pi)); });
+pair<string, packaged_task<double()>> GetSinTask() {
+  auto argument = GetRandArgument(-pi, pi);
+  auto expression = "sin " + to_string(argument);
+  auto task = packaged_task<double()>([argument]() { return sin(argument); });
+  return {std::move(expression), std::move(task)};
 }
 
-packaged_task<double()> GetSqrtTask() {
-  return packaged_task<double()>([]() { return sqrt(GetRandArgument(0., 1000.)); });
+pair<string, packaged_task<double()>> GetSqrtTask() {
+  auto argument = GetRandArgument(0., 1000.);
+  auto expression = "sqrt " + to_string(argument);
+  auto task = packaged_task<double()>([argument]() { return sqrt(argument); });
+  return {std::move(expression), std::move(task)};
 }
 
-packaged_task<double()> GetPowTask() {
+pair<string, packaged_task<double()>> GetPowTask() {
   double base = GetRandArgument(1., 10.);
   double power = GetRandArgument(0., 100.);
-  return packaged_task<double()>([base, power]() { return pow(base, power); });
+  auto expression = "pow " + to_string(base) + " " + to_string(power);
+  auto task = packaged_task<double()>([base, power]() { return pow(base, power); });
+  return {std::move(expression), std::move(task)};
 }
 
-void AbstractClientJob(Server<double>& server, const string& foutName, packaged_task<double()> (* get_task)()) {
+void AbstractClientJob(Server<double>& server,
+                       const string& foutName,
+                       pair<string, packaged_task<double()>> (* get_task)()) {
   const int kCreatedTasksCount = 10000;
 
-  auto task_ids = vector<size_t>();
+  auto task_ids_and_expressions = vector<pair<size_t, string>>();
   for (int i = 0; i < kCreatedTasksCount; ++i) {
-    task_ids.push_back(server.AddTask(std::move(get_task())));
+    auto [expression, task] = get_task();
+    auto task_id = server.AddTask(std::move(task));
+    task_ids_and_expressions.emplace_back(task_id, std::move(expression));
   }
 
   ofstream fout(foutName);
-  for (auto task_id : task_ids) {
+  for (auto& [task_id, expression] : task_ids_and_expressions) {
     auto result = server.RequestResult(task_id);
-    fout << result << endl;
+    fout << expression << ": " << result << endl;
   }
   fout.close();
 }
