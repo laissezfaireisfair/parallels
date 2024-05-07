@@ -3,6 +3,7 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread, Event
 from time import sleep
+from cv2 import waitKey
 
 from ProgramArguments import ProgramArguments
 from SensorX import SensorX
@@ -21,6 +22,17 @@ def get_last(queue: Queue, default: float) -> float:
     while not queue.empty():
         last = queue.get()
     return last
+
+
+class BoolWrapper:
+    def __init__(self, value: bool):
+        self.value = bool(value)
+
+
+def set_exit_flag_on_key(flag: BoolWrapper):
+    while waitKey(0) != ord('q'):
+        pass
+    flag.value = True
 
 
 def main():
@@ -60,16 +72,21 @@ def main():
         logger.error(exception)
         return
 
-    duration = 3
+    is_close_requested = BoolWrapper(False)
+    key_monitor_thread = Thread(target=set_exit_flag_on_key, args=(is_close_requested,))
+    key_monitor_thread.start()
+
     last_low_delay_result = None
     last_mid_delay_result = None
     last_high_delay_result = None
-    for _ in range(round(duration * program_arguments.result_frequency)):
+    while not is_close_requested.value:
         last_low_delay_result = get_last(low_delay_results, last_low_delay_result)
         last_mid_delay_result = get_last(mid_delay_results, last_mid_delay_result)
         last_high_delay_result = get_last(high_delay_results, last_high_delay_result)
         print(f'{last_low_delay_result} {last_mid_delay_result} {last_high_delay_result}')
         sleep(1 / program_arguments.result_frequency)
+
+    key_monitor_thread.join()
 
     logger.info('Invoking stop event...')
     try:
