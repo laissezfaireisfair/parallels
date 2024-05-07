@@ -1,27 +1,21 @@
+import threading
 from logging import getLogger, basicConfig, INFO
 from pathlib import Path
+from queue import Queue
 from threading import Thread
 from time import sleep
 
 from ProgramArguments import ProgramArguments
-from SensorCam import SensorCam
 from SensorX import SensorX
 
 logger = getLogger(__name__)
 
 
-def job(program_arguments: ProgramArguments):
-    logger.info(f'Job started with program arguments: {program_arguments}')
-
-    sleep(0.5)
-
-    cam_sensor = SensorCam(program_arguments.camera_name, program_arguments.camera_resolution)
-
-    fast_sensor = SensorX(0.01)
-    mid_sensor = SensorX(0.1)
-    slow_sensor = SensorX(1)
-
-    logger.info('Job finished')
+def sensor_x_job(stop_event, delay: int, result_queue: Queue):
+    sensor = SensorX(delay)
+    while not stop_event.wait(1):
+        result_queue.put(sensor.get())
+        sleep(delay)
 
 
 def main():
@@ -31,21 +25,42 @@ def main():
     logger.info('Start up')
 
     logger.info('Parsing arguments...')
-
     try:
         program_arguments = ProgramArguments()
     except Exception as exception:
         logger.error(exception)
         return
+    logger.info(f'Program arguments: {program_arguments}')
+
+    logger.info('Creating thread...')
+    try:
+        stop_event = threading.Event()
+        delay = 1
+        result_queue = Queue()
+        sensor_x_thread = Thread(target=sensor_x_job, args=(stop_event, delay, result_queue))
+    except Exception as exception:
+        logger.error(exception)
+        return
 
     logger.info('Starting thread...')
+    try:
+        sensor_x_thread.start()
+    except Exception as exception:
+        logger.error(exception)
+        return
 
-    thread = Thread(target=job, args=(program_arguments,))
-    thread.start()
+    logger.info('Waiting 10 sec...')
+    sleep(10)
 
-    logger.info('Waiting for thread to finish...')
+    logger.info('Invoking stop event...')
+    try:
+        stop_event.set()
+    except Exception as exception:
+        logger.error(exception)
+        return
 
-    thread.join()
+    logger.info('Waiting for thread to join...')
+    sensor_x_thread.join()
 
     logger.info('Finish')
 

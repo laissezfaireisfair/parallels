@@ -14,7 +14,7 @@ class ProgramArguments:
         args = parser.parse_args()
         self.camera_name = args.cameraName
         self.camera_resolution = args.cameraResolution
-        self.camera_frequency = float(args.cameraFrequency)
+        self.camera_frequency = float(args.resultFrequency)
 
     def __str__(self):
         return f'{self.camera_name} {self.camera_resolution} {self.camera_frequency}'
