@@ -1,7 +1,7 @@
-from pathlib import Path
 from logging import getLogger, basicConfig, INFO
-from time import sleep
+from pathlib import Path
 from threading import Thread
+from time import sleep
 
 from ProgramArguments import ProgramArguments
 from SensorCam import SensorCam

@@ -1,5 +1,6 @@
-from Sensor import Sensor
 from logging import getLogger
+
+from Sensor import Sensor
 
 logger = getLogger(__name__)
 
