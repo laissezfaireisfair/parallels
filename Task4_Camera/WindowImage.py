@@ -1,3 +1,8 @@
+from logging import getLogger
+
+logger = getLogger(__name__)
+
+
 class WindowImage:
     def __init__(self, frequency: float):
         self.frequency = frequency

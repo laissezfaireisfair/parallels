@@ -1,4 +1,7 @@
 from Sensor import Sensor
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class SensorCam(Sensor):

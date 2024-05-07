@@ -1,4 +1,7 @@
 from argparse import ArgumentParser
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class ProgramArguments:

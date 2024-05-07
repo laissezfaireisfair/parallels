@@ -1,6 +1,9 @@
 from time import sleep
 
 from Sensor import Sensor
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class SensorX(Sensor):
