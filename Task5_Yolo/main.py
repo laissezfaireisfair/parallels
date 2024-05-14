@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
 
+from ultralytics import YOLO
+
 
 def main():
     parser = ArgumentParser(description='Yolo')
@@ -11,6 +13,8 @@ def main():
     video_path = args.vidPath
     mode = args.mode
     output_name = args.outputName
+
+    model = YOLO('yolov8s-pose.pt')
 
     # TODO: Implement
     pass
