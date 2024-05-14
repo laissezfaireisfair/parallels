@@ -89,8 +89,8 @@ def main():
         last_cam_image = get_last(cam_results, last_cam_image)
 
         text = f'{last_low_delay_result} - {last_mid_delay_result} - {last_high_delay_result}'
-        cv2.putText(img=last_cam_image, text=text, org=(5, 5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1,
-                    color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(img=last_cam_image, text=text, org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
+                    color=(255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
 
         if last_cam_image is not None:
             window_image.show(last_cam_image)
