@@ -2,8 +2,6 @@ from argparse import ArgumentParser
 
 import cv2
 from ultralytics import YOLO
-from ultralytics.engine.results import Keypoints
-
 
 def main():
     parser = ArgumentParser(description='Yolo')
@@ -23,9 +21,9 @@ def main():
     while video.isOpened():
         _, frame = video.read()
         cv2.imshow('frame', frame)
-        keypoints: Keypoints = model(frame)[0].keypoints
-        print(keypoints.data)
-        if cv2.waitKey(1) == ord('q'):
+        annotated_frame = model(frame)[0].plot()
+        cv2.imshow('annotated frame', annotated_frame)
+        if cv2.waitKey(20) == ord('q'):
             break
 
     video.release()
