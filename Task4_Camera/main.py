@@ -14,16 +14,22 @@ logger = getLogger(__name__)
 
 
 def sensor_x_job(stop_event: Event, delay: float, update_period: float, result_queue: Queue):
-    sensor = SensorX(delay)
-    while not stop_event.wait(update_period):
-        result_queue.put(sensor.get())
+    try:
+        sensor = SensorX(delay)
+        while not stop_event.wait(update_period):
+            result_queue.put(sensor.get())
+    except Exception as exception:
+        logger.exception('SensorX job failed', exc_info=exception)
 
 
 def sensor_cam_job(stop_event: Event, name: str, resolution: tuple[int, int], update_period: float,
                    result_queue: Queue):
-    sensor = SensorCam(name, resolution)
-    while not stop_event.wait(update_period):
-        result_queue.put(sensor.get())
+    try:
+        sensor = SensorCam(name, resolution)
+        while not stop_event.wait(update_period):
+            result_queue.put(sensor.get())
+    except Exception as exception:
+        logger.exception('SensorCam job failed', exc_info=exception)
 
 
 def get_last(queue: Queue, default):
@@ -45,7 +51,7 @@ def main():
     try:
         program_arguments = ProgramArguments()
     except Exception as exception:
-        logger.error(exception)
+        logger.exception('', exc_info=exception)
         return
     logger.info(f'Program arguments: {program_arguments}')
 
@@ -73,10 +79,15 @@ def main():
                                   sensor_request_period, cam_results))
         cam_thread.start()
     except Exception as exception:
-        logger.error(exception)
+        logger.exception('Creating threads failed', exc_info=exception)
         return
 
-    window_image = WindowImage(program_arguments.result_frequency)
+    logger.info('Creating image window...')
+    try:
+        window_image = WindowImage(program_arguments.result_frequency)
+    except Exception as exception:
+        logger.exception('Creating WindowImage failed', exc_info=exception)
+        return
 
     last_low_delay_result = None
     last_mid_delay_result = None
@@ -88,18 +99,20 @@ def main():
         last_high_delay_result = get_last(high_delay_results, last_high_delay_result)
         last_cam_image = get_last(cam_results, last_cam_image)
 
-        text = f'{last_low_delay_result} - {last_mid_delay_result} - {last_high_delay_result}'
-        cv2.putText(img=last_cam_image, text=text, org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
-                    color=(255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
-
         if last_cam_image is not None:
-            window_image.show(last_cam_image)
+            try:
+                text = f'{last_low_delay_result} - {last_mid_delay_result} - {last_high_delay_result}'
+                cv2.putText(img=last_cam_image, text=text, org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5,
+                            color=(255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
+                window_image.show(last_cam_image)
+            except Exception as exception:
+                logger.exception('Frame show failed', exc_info=exception)
 
     logger.info('Invoking stop event...')
     try:
         stop_event.set()
     except Exception as exception:
-        logger.error(exception)
+        logger.exception('Stopping failed', exc_info=exception)
         return
 
     logger.info('Waiting for thread to join...')
