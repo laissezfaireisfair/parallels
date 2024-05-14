@@ -9,9 +9,8 @@ logger = getLogger(__name__)
 class SensorCam(Sensor):
     def __init__(self, name: str, resolution: str):
         super().__init__(is_valid_child=True)
-        self.name = name
         self.resolution = resolution
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(name)
 
     def get(self):
         _, image = self.camera.read()
