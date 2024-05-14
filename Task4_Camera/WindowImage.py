@@ -6,8 +6,8 @@ logger = getLogger(__name__)
 
 
 class WindowImage:
-    def __init__(self, frequency: float):
-        self.delay = round(1000 / frequency)
+    def __init__(self, frequency: int):
+        self.delay = round(1000.0 / frequency)
         self.window_name = 'Image window'
         self.is_close_requested = False
 

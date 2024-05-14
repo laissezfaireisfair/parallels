@@ -2,7 +2,6 @@ from logging import getLogger, basicConfig, INFO
 from pathlib import Path
 from queue import Queue
 from threading import Thread, Event
-from time import sleep
 
 import cv2
 
@@ -14,13 +13,14 @@ from WindowImage import WindowImage
 logger = getLogger(__name__)
 
 
-def sensor_x_job(stop_event, delay: float, update_period: float, result_queue: Queue):
+def sensor_x_job(stop_event: Event, delay: float, update_period: float, result_queue: Queue):
     sensor = SensorX(delay)
     while not stop_event.wait(update_period):
         result_queue.put(sensor.get())
 
 
-def sensor_cam_job(stop_event, name, resolution, update_period: float, result_queue: Queue):
+def sensor_cam_job(stop_event: Event, name: str, resolution: tuple[int, int], update_period: float,
+                   result_queue: Queue):
     sensor = SensorCam(name, resolution)
     while not stop_event.wait(update_period):
         result_queue.put(sensor.get())
