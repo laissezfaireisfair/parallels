@@ -3,7 +3,7 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread, Event
 from time import sleep
-from cv2 import waitKey
+import cv2
 
 from ProgramArguments import ProgramArguments
 from SensorCam import SensorCam
@@ -38,7 +38,7 @@ class BoolWrapper:
 
 
 def set_exit_flag_on_key(flag: BoolWrapper):
-    while waitKey(0) != ord('q'):
+    while cv2.waitKey(0) != ord('q'):
         pass
     flag.value = True
 

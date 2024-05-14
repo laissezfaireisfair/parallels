@@ -1,4 +1,5 @@
 from logging import getLogger
+import cv2
 
 logger = getLogger(__name__)
 
@@ -6,9 +7,10 @@ logger = getLogger(__name__)
 class WindowImage:
     def __init__(self, frequency: float):
         self.frequency = frequency  # TODO: Consider getting rid of
+        self.window_name = 'Image window'
 
     def show(self, image):
-        raise NotImplementedError('Not yet implemented')
+        cv2.imshow(self.window_name, image)
 
     def __del__(self):
-        pass
+        cv2.destroyWindow(self.window_name)

@@ -1,4 +1,5 @@
 from logging import getLogger
+import cv2
 
 from Sensor import Sensor
 
@@ -10,9 +11,11 @@ class SensorCam(Sensor):
         super().__init__(is_valid_child=True)
         self.name = name
         self.resolution = resolution
+        self.camera = cv2.VideoCapture(0)
 
     def get(self):
-        raise NotImplementedError('Not yet implemented')
+        _, image = self.camera.read()
+        return image
 
     def __del__(self):
-        pass
+        self.camera.release()
