@@ -3,7 +3,6 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread, Event
 from time import sleep
-import cv2
 
 from ProgramArguments import ProgramArguments
 from SensorCam import SensorCam
@@ -30,17 +29,6 @@ def get_last(queue: Queue, default):
     while not queue.empty():
         last = queue.get()
     return last
-
-
-class BoolWrapper:
-    def __init__(self, value: bool):
-        self.value = bool(value)
-
-
-def set_exit_flag_on_key(flag: BoolWrapper):
-    while cv2.waitKey(0) != ord('q'):
-        pass
-    flag.value = True
 
 
 def main():
@@ -86,17 +74,13 @@ def main():
         logger.error(exception)
         return
 
-    is_close_requested = BoolWrapper(False)
-    key_monitor_thread = Thread(target=set_exit_flag_on_key, args=(is_close_requested,))
-    key_monitor_thread.start()
-
     window_image = WindowImage(program_arguments.result_frequency)
 
     last_low_delay_result = None
     last_mid_delay_result = None
     last_high_delay_result = None
     last_cam_image = None
-    while not is_close_requested.value:
+    while not window_image.is_close_requested:
         last_low_delay_result = get_last(low_delay_results, last_low_delay_result)
         last_mid_delay_result = get_last(mid_delay_results, last_mid_delay_result)
         last_high_delay_result = get_last(high_delay_results, last_high_delay_result)
@@ -107,8 +91,6 @@ def main():
         print(f'{last_low_delay_result} {last_mid_delay_result} {last_high_delay_result}')
 
         sleep(1 / program_arguments.result_frequency)
-
-    key_monitor_thread.join()
 
     logger.info('Invoking stop event...')
     try:
