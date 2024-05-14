@@ -5,7 +5,7 @@ logger = getLogger(__name__)
 
 class WindowImage:
     def __init__(self, frequency: float):
-        self.frequency = frequency
+        self.frequency = frequency  # TODO: Consider getting rid of
 
     def show(self, image):
         raise NotImplementedError('Not yet implemented')
