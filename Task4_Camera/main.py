@@ -4,6 +4,8 @@ from queue import Queue
 from threading import Thread, Event
 from time import sleep
 
+import cv2
+
 from ProgramArguments import ProgramArguments
 from SensorCam import SensorCam
 from SensorX import SensorX
@@ -86,11 +88,12 @@ def main():
         last_high_delay_result = get_last(high_delay_results, last_high_delay_result)
         last_cam_image = get_last(cam_results, last_cam_image)
 
+        text = f'{last_low_delay_result} - {last_mid_delay_result} - {last_high_delay_result}'
+        cv2.putText(img=last_cam_image, text=text, org=(5, 5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1,
+                    color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+
         if last_cam_image is not None:
             window_image.show(last_cam_image)
-        print(f'{last_low_delay_result} {last_mid_delay_result} {last_high_delay_result}')
-
-        sleep(1 / program_arguments.result_frequency)
 
     logger.info('Invoking stop event...')
     try:
