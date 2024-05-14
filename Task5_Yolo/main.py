@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 
+import cv2
 from ultralytics import YOLO
+from ultralytics.engine.results import Keypoints
 
 
 def main():
@@ -16,8 +18,18 @@ def main():
 
     model = YOLO('yolov8s-pose.pt')
 
-    # TODO: Implement
-    pass
+    video = cv2.VideoCapture(video_path)
+
+    while video.isOpened():
+        _, frame = video.read()
+        cv2.imshow('frame', frame)
+        keypoints: Keypoints = model(frame)[0].keypoints
+        print(keypoints.data)
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    video.release()
+    cv2.destroyAllWindows()
 
 
 main()
