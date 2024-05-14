@@ -23,14 +23,14 @@ def worker(stop_event: Event, queue: Queue, results: dict):
 def main():
     parser = ArgumentParser(description='Yolo')
     parser.add_argument('vidPath', type=str, help='Path to video')
-    parser.add_argument('mode', type=str, help='Single-threaded or multi-threaded')
+    parser.add_argument('threadsCount', type=int, help='Count of worker threads')
     parser.add_argument('outputName', type=str, help='Name of output file')
 
     args = parser.parse_args()
     video_path = args.vidPath
-    mode = args.mode
-    if mode != 'singlethread' and mode != 'multithread':
-        print('Unknown mode. Expected singlethread or multithread Exiting...')
+    threads_count = args.threadsCount
+    if threads_count < 1:
+        print('Expected at least one worker thread')
         return
     output_name = args.outputName
 
@@ -40,21 +40,10 @@ def main():
 
     processing_begin_time = time()
 
-    # model = YOLO('yolov8s-pose.pt')
-    #
-    # while video.isOpened():
-    #     ret, frame = video.read()
-    #     if not ret:
-    #         print('Cannot read frame. Exiting...')
-    #         break
-    #     annotated_frame = model.predict(frame, device='cpu')[0].plot()
-    #     writer.write(annotated_frame)
-
     task_queue = Queue()
     result_by_index = {}
 
     stop_event = Event()
-    threads_count = 8
     threads = [Thread(target=worker, args=(stop_event, task_queue, result_by_index)) for _ in range(threads_count)]
     for thread in threads:
         thread.start()
@@ -72,11 +61,14 @@ def main():
     stop_event.set()
 
     counter = 0
-    while result_by_index[counter] is not None:
+    while counter in result_by_index:
         writer.write(result_by_index[counter])
         counter += 1
 
     process_time = time() - processing_begin_time
+
+    for thread in threads:
+        thread.join()
 
     writer.release()
     video.release()
