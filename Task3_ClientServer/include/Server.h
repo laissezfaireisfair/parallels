@@ -13,6 +13,8 @@ using std::placeholders::_1;
 using std::nullopt;
 using std::packaged_task;
 using std::scoped_lock;
+using std::unique_lock;
+using std::defer_lock;
 using std::logic_error;
 using std::future;
 using std::optional;
@@ -79,14 +81,18 @@ class Server {
   mutex futures_mutex_;
 
   void computeTasksJob(stop_token const& token) {
+    unique_lock lock(tasks_mutex_, defer_lock);
+
     while (!token.stop_requested()) {
+      lock.lock();
       if (!tasks_.empty()) {
-        scoped_lock lock(tasks_mutex_);
         auto task = std::move(tasks_.front());
-        task();
         tasks_.pop();
+        lock.unlock();
+        task();
         continue;
       }
+      lock.unlock();
 
       sleep_for(milliseconds(200));
     }
