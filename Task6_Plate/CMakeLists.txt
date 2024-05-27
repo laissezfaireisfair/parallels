@@ -8,12 +8,7 @@ include_directories(include)
 if (MSVC)
     add_compile_options(/W4)
 else ()
-    add_compile_options(-Wall -Wextra -Wpedantic -fopenacc)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
 
-add_executable(Task6_Plate src/main.cpp
-        include/Grid.h
-        src/Grid.cpp
-        include/CmdArguments.h
-        include/Application.h
-        src/Application.cpp)
+add_executable(Task6_Plate src/main.cpp)
