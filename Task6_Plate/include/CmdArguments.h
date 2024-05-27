@@ -3,7 +3,7 @@
 namespace parallels {
 struct CmdArguments {
   double accuracy;
-  double grid_size;
-  double iterations_count;
+  size_t grid_size;
+  size_t iterations_count;
 };
 }

@@ -1,10 +1,14 @@
 #include <iostream>
 #include <stdexcept>
+#include <format>
 #include "Application.h"
 
 using std::stod;
+using std::stoul;
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::format;
 using std::exception;
 using std::invalid_argument;
 using parallels::CmdArguments;
@@ -16,8 +20,8 @@ CmdArguments ParseArguments(int argc, char* argv[]) {
 
   return {
       .accuracy = stod(argv[1]),
-      .grid_size = stod(argv[2]),
-      .iterations_count = stod(argv[3])
+      .grid_size = stoul(argv[2]),
+      .iterations_count = stoul(argv[3])
   };
 }
 
@@ -27,7 +31,13 @@ int main(int argc, char* argv[]) {
 
     Application application(arguments);
 
-    application.Run();
+    auto result = application.Run();
+
+    for (int i = 0; i < arguments.grid_size; ++i) {
+      for (int j = 0; j < arguments.grid_size; ++j)
+        cout << format("{:.4f}", result(i, j)) << " ";
+      cout << endl;
+    }
 
     return 0;
   }

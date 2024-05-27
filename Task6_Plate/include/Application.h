@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "CmdArguments.h"
+#include "SquareMatrix.h"
 
 namespace parallels {
 using std::unique_ptr;
@@ -9,7 +10,7 @@ class Application {
  public:
   explicit Application(CmdArguments arguments);
 
-  void Run();
+  SquareMatrix Run();
 
   ~Application();
 
