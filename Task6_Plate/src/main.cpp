@@ -8,7 +8,6 @@ using std::stoul;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::format;
 using std::exception;
 using std::invalid_argument;
 using parallels::CmdArguments;
@@ -35,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i < arguments.grid_size; ++i) {
       for (size_t j = 0; j < arguments.grid_size; ++j)
-        cout << format("{:.4f}", result(i, j)) << " ";
+        cout << result(i, j) << " ";
       cout << endl;
     }
 

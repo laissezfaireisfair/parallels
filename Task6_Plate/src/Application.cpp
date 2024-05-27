@@ -10,11 +10,11 @@ using std::max;
 class Application::Impl {
  public:
   explicit Impl(CmdArguments arguments) : arguments_(arguments) {
-    if (arguments_.accuracy <= 1e-6)
+    if (arguments_.accuracy < 1e-6)
       throw invalid_argument("Accuracy should be more than 10^-6");
-    if (static_cast<double>(arguments_.iterations_count) >= 1e6)
+    if (static_cast<double>(arguments_.iterations_count) > 1e6)
       throw invalid_argument("Iterations count should be less than 10^6");
-    if (arguments_.grid_size >= 1024)
+    if (arguments_.grid_size > 1024)
       throw invalid_argument("Grid size count should be less than 1024");
   }
 
