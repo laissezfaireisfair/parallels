@@ -23,13 +23,14 @@ class Application::Impl {
 
     for (int i = 0; i < arguments_.iterations_count; ++i) {
       auto diff = RunOneIter(grid, grid_after_step);
-      if (diff < arguments_.accuracy)
-        break;
 
       swap(grid, grid_after_step);
+
+      if (diff < arguments_.accuracy)
+        break;
     }
 
-    return grid_after_step;
+    return grid;
   }
 
  private:
