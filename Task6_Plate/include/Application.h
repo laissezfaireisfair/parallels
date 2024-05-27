@@ -1,10 +1,8 @@
 #pragma once
-#include <memory>
 #include "CmdArguments.h"
 #include "Grid.h"
 
 namespace parallels {
-using std::unique_ptr;
 
 class Application {
  public:
@@ -15,7 +13,10 @@ class Application {
   ~Application();
 
  private:
-  class Impl;
-  unique_ptr<Impl> pimpl_;
+  CmdArguments arguments_;
+
+  Grid CreateStartGrid() const;
+
+  double RunOneIter(const Grid& grid, Grid& grid_after_step) const;
 };
 }
