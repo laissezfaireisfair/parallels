@@ -19,7 +19,7 @@ class Application::Impl {
 
   Grid Run() {
     auto grid = CreateStartGrid();
-    auto grid_after_step = Grid(arguments_.grid_size);
+    auto grid_after_step = grid;
 
     for (int i = 0; i < arguments_.iterations_count; ++i) {
       auto diff = RunOneIter(grid, grid_after_step);
@@ -45,10 +45,14 @@ class Application::Impl {
     matrix(lastIndex, 0) = 30;
     matrix(lastIndex, lastIndex) = 20;
 
-    double diff_top = matrix(0, lastIndex) - matrix(0, 0) / static_cast<double>(lastIndex);
-    double diff_bottom = matrix(lastIndex, lastIndex) - matrix(lastIndex, 0) / static_cast<double>(lastIndex);
-    double diff_left = matrix(lastIndex, 0) - matrix(0, 0) / static_cast<double>(lastIndex);
-    double diff_right = matrix(lastIndex, lastIndex) - matrix(0, lastIndex) / static_cast<double>(lastIndex);
+    double diff_top = matrix(0, lastIndex) - matrix(0, 0) /
+        static_cast<double>(lastIndex);
+    double diff_bottom = matrix(lastIndex, lastIndex) - matrix(lastIndex, 0) /
+        static_cast<double>(lastIndex);
+    double diff_left = matrix(lastIndex, 0) - matrix(0, 0) /
+        static_cast<double>(lastIndex);
+    double diff_right = matrix(lastIndex, lastIndex) - matrix(0, lastIndex) /
+        static_cast<double>(lastIndex);
     for (int i = 1; i <= lastIndex; ++i) {
       matrix(0, i) = matrix(0, i - 1) + diff_top;
       matrix(lastIndex, i) = matrix(lastIndex, i - 1) + diff_bottom;
@@ -60,8 +64,15 @@ class Application::Impl {
   }
 
   double RunOneIter(Grid const& grid, Grid& grid_after_step) const {
-    // TODO: Implement
-    grid_after_step = grid;
+    for (int i = 1; i < arguments_.grid_size - 1; ++i) {
+      for (int j = 1; j < arguments_.grid_size - 1; ++j)
+        grid_after_step(i, j) = (grid(i, j) +
+            grid(i - 1, j) +
+            grid(i + 1, j) +
+            grid(i, j - 1) +
+            grid(i, j + 1)
+        ) / 5.;
+    }
     return arguments_.accuracy / 2.;
   }
 };
