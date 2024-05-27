@@ -4,9 +4,9 @@
 namespace parallels {
 using std::vector;
 
-class SquareMatrix {
+class Grid {
  public:
-  explicit SquareMatrix(size_t size);
+  explicit Grid(size_t size);
 
   size_t Size() const;
 

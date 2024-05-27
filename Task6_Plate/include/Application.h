@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "CmdArguments.h"
-#include "SquareMatrix.h"
+#include "Grid.h"
 
 namespace parallels {
 using std::unique_ptr;
@@ -10,7 +10,7 @@ class Application {
  public:
   explicit Application(CmdArguments arguments);
 
-  SquareMatrix Run();
+  Grid Run();
 
   ~Application();
 

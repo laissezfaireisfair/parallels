@@ -17,9 +17,9 @@ class Application::Impl {
       throw invalid_argument("Grid size count should be less than 1024");
   }
 
-  SquareMatrix Run() {
+  Grid Run() {
     auto grid = CreateStartGrid();
-    auto grid_after_step = SquareMatrix(arguments_.grid_size);
+    auto grid_after_step = Grid(arguments_.grid_size);
 
     for (int i = 0; i < arguments_.iterations_count; ++i) {
       auto diff = RunOneIter(grid, grid_after_step);
@@ -35,8 +35,8 @@ class Application::Impl {
  private:
   CmdArguments arguments_;
 
-  SquareMatrix CreateStartGrid() const {
-    auto matrix = SquareMatrix(arguments_.grid_size);
+  Grid CreateStartGrid() const {
+    auto matrix = Grid(arguments_.grid_size);
     auto lastIndex = matrix.Size() - 1;
 
     matrix(0,0) = 10;
@@ -47,7 +47,7 @@ class Application::Impl {
     return matrix;
   }
 
-  double RunOneIter(SquareMatrix const& grid, SquareMatrix& grid_after_step) const {
+  double RunOneIter(Grid const& grid, Grid& grid_after_step) const {
     // TODO: Implement
     return arguments_.accuracy / 2.;
   }
@@ -55,7 +55,7 @@ class Application::Impl {
 
 Application::Application(CmdArguments arguments) : pimpl_(make_unique<Impl>(arguments)) {}
 
-SquareMatrix Application::Run() {
+Grid Application::Run() {
   return pimpl_->Run();
 }
 
