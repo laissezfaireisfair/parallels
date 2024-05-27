@@ -27,8 +27,12 @@ class Application::Impl {
   CmdArguments arguments_;
 
   SquareMatrix CreateStartGrid() const {
-    // TODO: Implement
-    return SquareMatrix(arguments_.grid_size);
+    auto matrix = SquareMatrix(arguments_.grid_size);
+    matrix(0,0) = 10;
+    matrix(0,matrix.Size()) = 20;
+    matrix(matrix.Size(),0) = 30;
+    matrix(matrix.Size(),matrix.Size()) = 20;
+    return matrix;
   }
 
   double RunOneIter(SquareMatrix const& grid, SquareMatrix& grid_after_step) const {
