@@ -5,6 +5,7 @@ namespace parallels {
 using std::invalid_argument;
 using std::make_unique;
 using std::swap;
+using std::max;
 
 class Application::Impl {
  public:
@@ -37,43 +38,49 @@ class Application::Impl {
   CmdArguments arguments_;
 
   Grid CreateStartGrid() const {
-    auto matrix = Grid(arguments_.grid_size);
-    auto lastIndex = matrix.Size() - 1;
+    auto grid = Grid(arguments_.grid_size);
+    auto lastIndex = grid.Size() - 1;
 
-    matrix(0, 0) = 10;
-    matrix(0, lastIndex) = 20;
-    matrix(lastIndex, 0) = 30;
-    matrix(lastIndex, lastIndex) = 20;
+    grid(0, 0) = 10;
+    grid(0, lastIndex) = 20;
+    grid(lastIndex, 0) = 30;
+    grid(lastIndex, lastIndex) = 20;
 
-    double diff_top = matrix(0, lastIndex) - matrix(0, 0) /
+    double diff_top = (grid(0, lastIndex) - grid(0, 0)) /
         static_cast<double>(lastIndex);
-    double diff_bottom = matrix(lastIndex, lastIndex) - matrix(lastIndex, 0) /
+    double diff_bottom = (grid(lastIndex, lastIndex) - grid(lastIndex, 0)) /
         static_cast<double>(lastIndex);
-    double diff_left = matrix(lastIndex, 0) - matrix(0, 0) /
+    double diff_left = (grid(lastIndex, 0) - grid(0, 0)) /
         static_cast<double>(lastIndex);
-    double diff_right = matrix(lastIndex, lastIndex) - matrix(0, lastIndex) /
+    double diff_right = (grid(lastIndex, lastIndex) - grid(0, lastIndex)) /
         static_cast<double>(lastIndex);
-    for (int i = 1; i <= lastIndex; ++i) {
-      matrix(0, i) = matrix(0, i - 1) + diff_top;
-      matrix(lastIndex, i) = matrix(lastIndex, i - 1) + diff_bottom;
-      matrix(i, 0) = matrix(i - 1, 0) + diff_left;
-      matrix(i, lastIndex) = matrix(i - 1, lastIndex) + diff_right;
+    for (int i = 1; i < lastIndex; ++i) {
+      grid(0, i) = grid(0, i - 1) + diff_top;
+      grid(lastIndex, i) = grid(lastIndex, i - 1) + diff_bottom;
+      grid(i, 0) = grid(i - 1, 0) + diff_left;
+      grid(i, lastIndex) = grid(i - 1, lastIndex) + diff_right;
     }
 
-    return matrix;
+    return grid;
   }
 
   double RunOneIter(Grid const& grid, Grid& grid_after_step) const {
+    double maxDiff = 0.;
+
     for (int i = 1; i < arguments_.grid_size - 1; ++i) {
-      for (int j = 1; j < arguments_.grid_size - 1; ++j)
+      for (int j = 1; j < arguments_.grid_size - 1; ++j) {
         grid_after_step(i, j) = (grid(i, j) +
             grid(i - 1, j) +
             grid(i + 1, j) +
             grid(i, j - 1) +
             grid(i, j + 1)
         ) / 5.;
+
+        maxDiff = max(maxDiff, grid_after_step(i, j) - grid(i, j));
+      }
     }
-    return arguments_.accuracy / 2.;
+
+    return maxDiff;
   }
 };
 
