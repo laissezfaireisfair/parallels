@@ -12,7 +12,7 @@ class Application::Impl {
     auto grid = CreateStartGrid();
     auto grid_after_step = SquareMatrix(arguments_.grid_size);
 
-    while (true) {
+    for (int i = 0; i < arguments_.iterations_count; ++i) {
       auto diff = RunOneIter(grid, grid_after_step);
       if (diff < arguments_.accuracy)
         break;
