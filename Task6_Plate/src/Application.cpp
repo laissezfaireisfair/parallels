@@ -1,12 +1,21 @@
+#include <stdexcept>
 #include "Application.h"
 
 namespace parallels {
+using std::invalid_argument;
 using std::make_unique;
 using std::swap;
 
 class Application::Impl {
  public:
-  explicit Impl(CmdArguments arguments) : arguments_(arguments) {}
+  explicit Impl(CmdArguments arguments) : arguments_(arguments) {
+    if (arguments_.accuracy <= 1e-6)
+      throw invalid_argument("Accuracy should be more than 10^-6");
+    if (static_cast<double>(arguments_.iterations_count) >= 1e6)
+      throw invalid_argument("Iterations count should be less than 10^6");
+    if (arguments_.grid_size >= 1024)
+      throw invalid_argument("Grid size count should be less than 1024");
+  }
 
   SquareMatrix Run() {
     auto grid = CreateStartGrid();
@@ -28,10 +37,13 @@ class Application::Impl {
 
   SquareMatrix CreateStartGrid() const {
     auto matrix = SquareMatrix(arguments_.grid_size);
+    auto lastIndex = matrix.Size() - 1;
+
     matrix(0,0) = 10;
-    matrix(0,matrix.Size()) = 20;
-    matrix(matrix.Size(),0) = 30;
-    matrix(matrix.Size(),matrix.Size()) = 20;
+    matrix(0, lastIndex) = 20;
+    matrix(lastIndex, 0) = 30;
+    matrix(lastIndex, lastIndex) = 20;
+
     return matrix;
   }
 
