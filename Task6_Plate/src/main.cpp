@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
 
     auto result = application.Run();
 
-    for (int i = 0; i < arguments.grid_size; ++i) {
-      for (int j = 0; j < arguments.grid_size; ++j)
+    for (size_t i = 0; i < arguments.grid_size; ++i) {
+      for (size_t j = 0; j < arguments.grid_size; ++j)
         cout << format("{:.4f}", result(i, j)) << " ";
       cout << endl;
     }
