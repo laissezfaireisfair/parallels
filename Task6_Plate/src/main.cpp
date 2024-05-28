@@ -44,7 +44,6 @@ class Application {
   Grid Run() {
     auto grid = CreateStartGrid();
     auto grid_after_step = grid;
-#pragma acc enter data copyin(grid, grid_after_step)
 
     for (size_t i = 0; i < arguments_.iterations_count; ++i) {
       auto diff = RunOneIter(grid, grid_after_step);
@@ -54,7 +53,7 @@ class Application {
       if (diff < arguments_.accuracy)
         break;
     }
-#pragma acc exit data delete(grid, grid_after_step)
+
     return grid;
   }
 
@@ -93,7 +92,7 @@ class Application {
   double RunOneIter(const Grid& grid, Grid& grid_after_step) const {
     double max_diff = 0.;
 
-#pragma acc parallel loop reduction(max:max_diff) present(grid, grid_after_step)
+#pragma acc parallel loop reduction(max:max_diff)
     for (size_t i = 1; i < arguments_.grid_size - 1; ++i) {
 #pragma acc loop
       for (size_t j = 1; j < arguments_.grid_size - 1; ++j) {
