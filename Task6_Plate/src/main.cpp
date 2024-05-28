@@ -2,32 +2,12 @@
 #include <stdexcept>
 #include <format>
 #include <vector>
+#include <memory>
 
 struct CmdArguments {
   double accuracy;
   size_t grid_size;
   size_t iterations_count;
-};
-
-class Grid {
- public:
-  explicit Grid(size_t size) : size_(size), body_(size * size) {}
-
-  size_t Size() const {
-    return size_;
-  }
-
-  double& operator()(size_t row, size_t column) {
-    return body_.at(row * size_ + column);
-  }
-
-  double const& operator()(size_t row, size_t column) const {
-    return body_.at(row * size_ + column);
-  }
-
- private:
-  size_t size_;
-  std::vector<double> body_;
 };
 
 class Application {
@@ -41,20 +21,23 @@ class Application {
       throw std::invalid_argument("Grid size count should be less than 1024");
   }
 
-  Grid Run() {
-    auto grid = CreateStartGrid();
-    auto grid_after_step = grid;
+  std::unique_ptr<double[]> Run() {
+    auto grid = CreateStartGrid().release();
+    auto grid_after_step = CreateStartGrid().release();
 
-    for (size_t i = 0; i < arguments_.iterations_count; ++i) {
-      auto diff = RunOneIter(grid, grid_after_step);
+#pragma acc data copy(grid[:arguments_.grid_size * arguments_.grid_size], grid_after_step[:arguments_.grid_size * arguments_.grid_size])
+    {
+      for (size_t i = 0; i < arguments_.iterations_count; ++i) {
+        auto diff = RunOneIter(grid, grid_after_step);
 
-      std::swap(grid, grid_after_step);
+        std::swap(grid, grid_after_step);
 
-      if (diff < arguments_.accuracy)
-        break;
+        if (diff < arguments_.accuracy)
+          break;
+      }
     }
 
-    return grid;
+    return std::unique_ptr<double[]>(grid);
   }
 
   ~Application() = default;
@@ -62,48 +45,52 @@ class Application {
  private:
   CmdArguments arguments_;
 
-  Grid CreateStartGrid() const {
-    auto grid = Grid(arguments_.grid_size);
-    auto lastIndex = grid.Size() - 1;
+  inline size_t idx(size_t str, size_t col) const {
+    return str * arguments_.grid_size + col;
+  }
 
-    grid(0, 0) = 10;
-    grid(0, lastIndex) = 20;
-    grid(lastIndex, 0) = 30;
-    grid(lastIndex, lastIndex) = 20;
+  std::unique_ptr<double[]> CreateStartGrid() const {
+    auto grid = std::make_unique<double[]>(arguments_.grid_size * arguments_.grid_size);
+    auto lastIndex = arguments_.grid_size - 1;
 
-    double diff_top = (grid(0, lastIndex) - grid(0, 0)) /
+    grid[idx(0, 0)] = 10;
+    grid[idx(0, lastIndex)] = 20;
+    grid[idx(lastIndex, 0)] = 30;
+    grid[idx(lastIndex, lastIndex)] = 20;
+
+    double diff_top = (grid[idx(0, lastIndex)] - grid[idx(0, 0)]) /
         static_cast<double>(lastIndex);
-    double diff_bottom = (grid(lastIndex, lastIndex) - grid(lastIndex, 0)) /
+    double diff_bottom = (grid[idx(lastIndex, lastIndex)] - grid[idx(lastIndex, 0)]) /
         static_cast<double>(lastIndex);
-    double diff_left = (grid(lastIndex, 0) - grid(0, 0)) /
+    double diff_left = (grid[idx(lastIndex, 0)] - grid[idx(0, 0)]) /
         static_cast<double>(lastIndex);
-    double diff_right = (grid(lastIndex, lastIndex) - grid(0, lastIndex)) /
+    double diff_right = (grid[idx(lastIndex, lastIndex)] - grid[idx(0, lastIndex)]) /
         static_cast<double>(lastIndex);
     for (size_t i = 1; i < lastIndex; ++i) {
-      grid(0, i) = grid(0, i - 1) + diff_top;
-      grid(lastIndex, i) = grid(lastIndex, i - 1) + diff_bottom;
-      grid(i, 0) = grid(i - 1, 0) + diff_left;
-      grid(i, lastIndex) = grid(i - 1, lastIndex) + diff_right;
+      grid[idx(0, i)] = grid[idx(0, i - 1)] + diff_top;
+      grid[idx(lastIndex, i)] = grid[idx(lastIndex, i - 1)] + diff_bottom;
+      grid[idx(i, 0)] = grid[idx(i - 1, 0)] + diff_left;
+      grid[idx(i, lastIndex)] = grid[idx(i - 1, lastIndex)] + diff_right;
     }
 
     return grid;
   }
 
-  double RunOneIter(const Grid& grid, Grid& grid_after_step) const {
+  double RunOneIter(double* grid, double* grid_after_step) const {
     double max_diff = 0.;
 
-#pragma acc parallel loop reduction(max:max_diff)
+#pragma acc parallel loop reduction(max:max_diff) present(grid, grid_after_step)
     for (size_t i = 1; i < arguments_.grid_size - 1; ++i) {
 #pragma acc loop
       for (size_t j = 1; j < arguments_.grid_size - 1; ++j) {
-        grid_after_step(i, j) = (grid(i, j) +
-            grid(i - 1, j) +
-            grid(i + 1, j) +
-            grid(i, j - 1) +
-            grid(i, j + 1)
+        grid_after_step[idx(i, j)] = (grid[idx(i, j)] +
+            grid[idx(i - 1, j)] +
+            grid[idx(i + 1, j)] +
+            grid[idx(i, j - 1)] +
+            grid[idx(i, j + 1)]
         ) / 5.;
 
-        max_diff = std::max(max_diff, grid_after_step(i, j) - grid(i, j));
+        max_diff = std::max(max_diff, grid_after_step[idx(i, j)] - grid[idx(i, j)]);
       }
     }
 
@@ -132,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i < arguments.grid_size; ++i) {
       for (size_t j = 0; j < arguments.grid_size; ++j)
-        std::cout << result(i, j) << " ";
+        std::cout << result[i * arguments.grid_size + j] << " ";
       std::cout << std::endl;
     }
 
