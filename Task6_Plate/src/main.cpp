@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i < arguments.grid_size; ++i) {
       for (size_t j = 0; j < arguments.grid_size; ++j)
-        std::cout << result[i * arguments.grid_size + j] << " ";
+        printf("%.2f ", result[i * arguments.grid_size + j]);
       std::cout << std::endl;
     }
 
